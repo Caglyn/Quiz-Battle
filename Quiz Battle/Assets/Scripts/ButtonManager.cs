@@ -1,34 +1,43 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Networking;
 using TMPro;
-using System.Collections;
 
 public class ButtonManager : MonoBehaviour
 {
-    private Scene scene;
-
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private GameObject mainMenuPanel;
-    [SerializeField] private TextMeshProUGUI questionText;
-
-    private string prompt = "Generate a multiple-choice question about science with 4 options and specify the correct answer.";
-    private string apiKey = "API_KEY";
+    [SerializeField] private GameObject categoryPanel;
+    [SerializeField] private GameObject gamePanel;
+    
+    [SerializeField] private APIManager apiManager;
+    [SerializeField] private GameManager gameManager;
+    
+    private string prompt;
 
     private void Start()
     {
-        scene = SceneManager.GetActiveScene();
+        categoryPanel.SetActive(false);
         tutorialPanel.SetActive(false);
+        gamePanel.SetActive(false);
         mainMenuPanel.SetActive(true);
-        questionText.gameObject.SetActive(false);
+
+        if (apiManager == null)
+        {
+            apiManager = FindObjectOfType<APIManager>();
+            Debug.Log("APIManager not set in the inspector. Trying to find one in the scene.");
+        }
+
+        if (gameManager == null)
+        {
+            gameManager = FindObjectOfType<GameManager>();
+            Debug.Log("GameManager not set in the inspector. Trying to find one in the scene.");
+        }
     }
 
     public void OnClickPlayButton()
     {
         Debug.Log("Play Button Clicked");
         mainMenuPanel.SetActive(false);
-        questionText.gameObject.SetActive(true);
-        StartCoroutine(GetQuestionFromAPI(prompt));
+        categoryPanel.SetActive(true);
     }
 
     public void OnClickExitButton()
@@ -47,67 +56,25 @@ public class ButtonManager : MonoBehaviour
     public void OnClickBackButton()
     {
         Debug.Log("Back Button Clicked");
-        tutorialPanel.SetActive(false);
-        mainMenuPanel.SetActive(true);
-    }
-
-    private IEnumerator GetQuestionFromAPI(string prompt)
-    {
-        string url = "https://api.openai.com/v1/chat/completions";
-        string requestBody = "{\"model\":\"gpt-4\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful assistant for a quiz game.\"},{\"role\":\"user\",\"content\":\"" + prompt + "\"}],\"max_tokens\":150,\"temperature\":0.7}";
-
-        UnityWebRequest request = new UnityWebRequest(url, "POST");
-        byte[] body = System.Text.Encoding.UTF8.GetBytes(requestBody);
-        request.uploadHandler = new UploadHandlerRaw(body);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", "Bearer " + apiKey);
-
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.Success)
+        if (categoryPanel.activeSelf)
         {
-            Debug.Log("Response: " + request.downloadHandler.text);
-            string response = ExtractResponse(request.downloadHandler.text);
-            questionText.text = response; // Display the generated question
+            categoryPanel.SetActive(false);
+            mainMenuPanel.SetActive(true);
         }
-        else
+        else if (tutorialPanel.activeSelf)
         {
-            Debug.LogError("Error: " + request.error);
-            Debug.LogError("Details: " + request.downloadHandler.text);
-            questionText.text = "Failed to load question.";
+            tutorialPanel.SetActive(false);
+            mainMenuPanel.SetActive(true);
         }
     }
 
-
-    private string ExtractResponse(string jsonResponse)
+    public void OnClickCategoryButton(string category)
     {
-        // Deserialize the JSON response
-        var chatResponse = JsonUtility.FromJson<ChatResponse>(jsonResponse);
-        if (chatResponse.choices != null && chatResponse.choices.Length > 0)
-        {
-            return chatResponse.choices[0].message.content.Trim();
-        }
-        return "No response from API.";
-    }
+        Debug.Log("Category Button Clicked: " + category);
+        categoryPanel.SetActive(false);
 
-    [System.Serializable]
-    private class ChatResponse
-    {
-        public Choice[] choices;
+        prompt = "Generate a multiple-choice question about " + category + " with 4 options and specify the correct answer.";
+        gameManager.GetQuestionFromAPI(prompt);
+        gamePanel.SetActive(true);
     }
-
-    [System.Serializable]
-    private class Choice
-    {
-        public Message message;
-    }
-
-    [System.Serializable]
-    private class Message
-    {
-        public string role;
-        public string content;
-    }
-
 }
