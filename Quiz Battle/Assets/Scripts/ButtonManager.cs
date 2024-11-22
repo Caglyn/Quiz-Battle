@@ -3,15 +3,19 @@ using TMPro;
 
 public class ButtonManager : MonoBehaviour
 {
+    [Header("Panels")]
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject categoryPanel;
     [SerializeField] private GameObject gamePanel;
     
+    [Header("Manager References")]
     [SerializeField] private APIManager apiManager;
     [SerializeField] private GameManager gameManager;
     
-    private string prompt;
+    [Header("Prompt Settings")]
+    [SerializeField] private string prompt;
+    [SerializeField] private int desiredQuestionCount = 6;
 
     private void Start()
     {
@@ -73,8 +77,8 @@ public class ButtonManager : MonoBehaviour
         Debug.Log("Category Button Clicked: " + category);
         categoryPanel.SetActive(false);
 
-        prompt = "Generate a multiple-choice question about " + category + " with 4 options and specify the correct answer.";
-        gameManager.GetQuestionFromAPI(prompt);
+        prompt = "Generate " + desiredQuestionCount + " multiple-choice questions about " + category +  " with 4 options each, and specify the correct answer for each question. Separate each question clearly. Don't specify the question's order, 'Question:' at the start is enough to indicate the start of a new question.";
+        gameManager.GetQuestionsFromAPI(prompt);
         gamePanel.SetActive(true);
     }
 }

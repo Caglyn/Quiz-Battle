@@ -6,17 +6,15 @@ public class PlayerChoiceNavigator : MonoBehaviour
 {
     [Header("Player Configuration")]
     [SerializeField] private bool isPlayer1; // Check for Player 1, uncheck for Player 2
-    [SerializeField] private Button[] choiceButtons; // Assign the choice buttons in the inspector
-
-    [Header("Input Settings")]
-    private GameInputActions inputActions; // Input Actions
+    [SerializeField] private Button[] choiceButtons; // Assign the choice buttons in the inspector for each player
 
     private int currentIndex = 0; // Current selected button index
 
+    private GameInputActions inputActions; // Input Actions object
+
     private void Awake()
     {
-        inputActions = new GameInputActions(); // Initialize the input actions
-Debug.Log("OnSelect callback registered for Player " + (isPlayer1 ? "1" : "2"));
+        inputActions = new GameInputActions();
 
         if (isPlayer1)
         {
@@ -56,43 +54,27 @@ Debug.Log("OnSelect callback registered for Player " + (isPlayer1 ? "1" : "2"));
 
     private void OnMove(InputAction.CallbackContext context)
     {
-        Vector2 input = context.ReadValue<Vector2>();
+        float inputY = context.ReadValue<Vector2>().y;
 
-        if (input.y > 0) // Up
+        if (inputY > 0)
         {
-            MoveSelection(-1);
+            MoveSelection(-1); // Move up
         }
-        else if (input.y < 0) // Down
+        else if (inputY < 0)
         {
-            MoveSelection(1);
+            MoveSelection(1); // Move down
         }
     }
 
     private void OnSelect(InputAction.CallbackContext context)
     {
-        // Trigger the currently selected button's click event
-        choiceButtons[currentIndex].onClick.Invoke();
+        choiceButtons[currentIndex].onClick.Invoke(); // Trigger the button click
     }
 
     private void MoveSelection(int direction)
     {
-        // Deselect the current button
-        choiceButtons[currentIndex].OnDeselect(null);
-
-        // Update the index
-        currentIndex += direction;
-
-        // Wrap around the index
-        if (currentIndex < 0)
-        {
-            currentIndex = choiceButtons.Length - 1;
-        }
-        else if (currentIndex >= choiceButtons.Length)
-        {
-            currentIndex = 0;
-        }
-
-        // Highlight the new button
-        choiceButtons[currentIndex].Select();
+        choiceButtons[currentIndex].OnDeselect(null); // Deselect current button
+        currentIndex = (currentIndex + direction + choiceButtons.Length) % choiceButtons.Length; // Update index
+        choiceButtons[currentIndex].Select(); // Select new button
     }
 }
