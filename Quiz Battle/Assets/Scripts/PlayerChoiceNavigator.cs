@@ -9,8 +9,10 @@ public class PlayerChoiceNavigator : MonoBehaviour
     [SerializeField] private Button[] choiceButtons; // Assign the choice buttons in the inspector for each player
 
     private int currentIndex = 0; // Current selected button index
-
     private GameInputActions inputActions; // Input Actions object
+
+    private Color defaultColor = Color.white;  // Default button color
+    private Color selectedColor = Color.yellow; // Highlighted color for selection
 
     private void Awake()
     {
@@ -38,6 +40,8 @@ public class PlayerChoiceNavigator : MonoBehaviour
         {
             inputActions.Player2.Enable();
         }
+
+        HighlightButton(currentIndex); // Highlight the initial button
     }
 
     private void OnDisable()
@@ -73,8 +77,25 @@ public class PlayerChoiceNavigator : MonoBehaviour
 
     private void MoveSelection(int direction)
     {
-        choiceButtons[currentIndex].OnDeselect(null); // Deselect current button
-        currentIndex = (currentIndex + direction + choiceButtons.Length) % choiceButtons.Length; // Update index
-        choiceButtons[currentIndex].Select(); // Select new button
+        // Remove highlight from the current button
+        SetButtonColor(choiceButtons[currentIndex], defaultColor);
+
+        // Update the index with wrap-around logic
+        currentIndex = (currentIndex + direction + choiceButtons.Length) % choiceButtons.Length;
+
+        // Highlight the new button
+        HighlightButton(currentIndex);
+    }
+
+    private void HighlightButton(int index)
+    {
+        SetButtonColor(choiceButtons[index], selectedColor);
+    }
+
+    private void SetButtonColor(Button button, Color color)
+    {
+        var colors = button.colors;
+        colors.normalColor = color;
+        button.colors = colors;
     }
 }

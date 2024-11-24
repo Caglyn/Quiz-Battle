@@ -94,5 +94,4 @@ public class APIManager : MonoBehaviour
         public string role;
         public string content;
     }
-
 }

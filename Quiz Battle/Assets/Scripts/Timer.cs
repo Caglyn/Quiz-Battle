@@ -47,6 +47,12 @@ public class Timer : MonoBehaviour
         isPaused = false;
     }
 
+    public void ResetTimer()
+    {
+        currentTime = countdownTime;
+        UpdateTimerDisplay();
+    }
+
     private void UpdateTimerDisplay()
     {
         // Format the time as seconds

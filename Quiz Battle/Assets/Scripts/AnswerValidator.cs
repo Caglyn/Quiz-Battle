@@ -14,6 +14,15 @@ public class AnswerValidator : MonoBehaviour
     [SerializeField] private int correctAnswerPoint = 10;
     [SerializeField] private int wrongAnswerPoint = -10;
 
+    private void Start()
+    {
+        if (gameManager == null)
+        {
+            gameManager = FindObjectOfType<GameManager>();
+            Debug.Log("GameManager not set in the inspector. Trying to find one in the scene.");
+        }
+    }
+
     public void ValidateAnswer(Button clickedButton)
     {
         if (hasAnswered)
@@ -40,12 +49,15 @@ public class AnswerValidator : MonoBehaviour
             else
                 gameManager.UpdatePlayerScore(2, wrongAnswerPoint);
         }
-
-        // FOR SOME REASON, AFTER THE LAST QUESTION, PLAYERS CAN STILL ANSWER, NEEDS FIXING!!!
-        // SOMETHING TO DO WITH GAMEMANAGER'S NEXT QUESTIN METHOD AND 48-49 LINES OF THIS
-
+        
         // Optionally, disable buttons after an answer is selected
+        StartCoroutine(DelayNextQuestion());
+    }
+
+    private IEnumerator DelayNextQuestion()
+    {
         gameManager.DisablePlayerButtons();
+        yield return new WaitForSeconds(2f);
         gameManager.NextQuestion();
     }
 

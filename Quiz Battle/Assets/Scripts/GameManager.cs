@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
     private List<(string question, string[] choices, string correctAnswer)> questionQueue;
     private int currentQuestionIndex = 0;
 
+    [SerializeField] private PlayerChoiceNavigator player1ChoiceNavigator;
+    [SerializeField] private PlayerChoiceNavigator player2ChoiceNavigator;
+
     /*
      * TODO: CHOICE BUTTONS SHOULD BE TOGGLE BUTTONS, AND EVERY PLAYER'S FIRST CHOICE SHOULD BE SELECTED BY DEFAULT AT START
      * WHILE WAITING FOR THE API RESPONSE, LOADING SCREEN SHOULD BE DISPLAYED
@@ -47,6 +50,18 @@ public class GameManager : MonoBehaviour
             Debug.Log("Timer not set in the inspector. Trying to find one in the scene.");
         }
 
+        if (player1ChoiceNavigator == null)
+        {
+            player1ChoiceNavigator = FindObjectOfType<PlayerChoiceNavigator>();
+            Debug.Log("PlayerChoiceNavigator not set in the inspector. Trying to find one in the scene.");
+        }
+
+        if (player2ChoiceNavigator == null)
+        {
+            player2ChoiceNavigator = FindObjectOfType<PlayerChoiceNavigator>();
+            Debug.Log("PlayerChoiceNavigator not set in the inspector. Trying to find one in the scene.");
+        }
+
         questionQueue = new List<(string, string[], string)>(); // Initialize the question queue
 
         player1ScoreText.text = "Score: " + player1Score;
@@ -55,6 +70,7 @@ public class GameManager : MonoBehaviour
 
     public void GetQuestionsFromAPI(string prompt)
     {
+        gameTimer.ResetTimer(); // Reset the timer
         gameTimer.PauseTimer(); // Pause timer during question fetch
         StartCoroutine(apiManager.GetQuestionsFromAPI(prompt, OnQuestionsSuccess, HandleError));
     }
@@ -153,6 +169,9 @@ public class GameManager : MonoBehaviour
 
     public void EnablePlayerButtons() // Call this when the next question is loaded
     {
+        player1ChoiceNavigator.enabled = true;
+        player2ChoiceNavigator.enabled = true;
+
         foreach (var button in player1ChoiceButtons)
         {
             button.interactable = true;
@@ -171,6 +190,9 @@ public class GameManager : MonoBehaviour
 
     public void DisablePlayerButtons()
     {
+        player1ChoiceNavigator.enabled = false;
+        player2ChoiceNavigator.enabled = false;
+
         foreach (var button in player1ChoiceButtons)
         {
             button.interactable = false;
@@ -218,6 +240,29 @@ public class GameManager : MonoBehaviour
     public string GetCorrectAnswer() // Method to get the correct answer
     {
         return correctAnswer;
+    }
+
+    public void PauseGame()
+    {
+        gameTimer.PauseTimer();
+        DisablePlayerButtons();
+    }
+
+    public void ResumeGame()
+    {
+        gameTimer.ResumeTimer();
+        EnablePlayerButtons();
+    }
+
+    public void ResetGame()
+    {
+        player1Score = 0;
+        player2Score = 0;
+        player1ScoreText.text = "Score: " + player1Score;
+        player2ScoreText.text = "Score: " + player2Score;
+
+        questionQueue.Clear();
+        currentQuestionIndex = 0;
     }
 
     /*private void OnQuestionSuccess(string jsonResponse)
