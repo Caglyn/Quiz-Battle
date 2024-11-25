@@ -7,8 +7,9 @@ public class Timer : MonoBehaviour
     [SerializeField] private float countdownTime = 30f; // Set the total time for the countdown
 
     [Header("UI Elements")]
-    [SerializeField] private TextMeshProUGUI player1TimerText; // Timer UI for Player 1
-    //[SerializeField] private TextMeshProUGUI player2TimerText; // Timer UI for Player 2
+    [SerializeField] private TextMeshProUGUI gameTimerText;
+
+    [SerializeField] private GameManager gameManager;
 
     private float currentTime; // To track the remaining time
     private bool isPaused = true; // Timer starts paused by default
@@ -17,6 +18,12 @@ public class Timer : MonoBehaviour
     {
         currentTime = countdownTime; // Initialize the timer
         UpdateTimerDisplay(); // Update the timer display at the start
+
+        if(gameManager == null)
+        {
+            gameManager = FindObjectOfType<GameManager>();
+            Debug.Log("GameManager not set in the inspector. Trying to find one in the scene.");
+        }
     }
 
     void Update()
@@ -58,8 +65,7 @@ public class Timer : MonoBehaviour
         // Format the time as seconds
         string timerText = Mathf.Ceil(currentTime).ToString("00");
 
-        // Update both players' timer displays
-        player1TimerText.text = timerText;
+        gameTimerText.text = timerText;
         //player2TimerText.text = timerText;
     }
 
@@ -68,5 +74,6 @@ public class Timer : MonoBehaviour
         // Logic when the timer runs out
         Debug.Log("Time's Up!");
         // You can add logic to disable inputs or end the round here
+        gameManager.GameOver();
     }
 }

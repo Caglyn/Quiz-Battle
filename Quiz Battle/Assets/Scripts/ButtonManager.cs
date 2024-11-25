@@ -9,6 +9,7 @@ public class ButtonManager : MonoBehaviour
     [SerializeField] private GameObject categoryPanel;
     [SerializeField] private GameObject gamePanel;
     [SerializeField] private GameObject pausePanel;
+    [SerializeField] private GameObject gameOverPanel;
     
     [Header("Manager References")]
     [SerializeField] private APIManager apiManager;
@@ -19,6 +20,7 @@ public class ButtonManager : MonoBehaviour
     [SerializeField] private int desiredQuestionCount = 6;
 
     [SerializeField] private Image background;
+    bool isGameActive;
 
     private void Start()
     {
@@ -26,6 +28,7 @@ public class ButtonManager : MonoBehaviour
         tutorialPanel.SetActive(false);
         gamePanel.SetActive(false);
         pausePanel.SetActive(false);
+        gameOverPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
 
         if (apiManager == null)
@@ -43,13 +46,17 @@ public class ButtonManager : MonoBehaviour
     
     private void Update()
     {
+        isGameActive = pausePanel.activeSelf;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (gamePanel.activeSelf)
+            isGameActive = !isGameActive;
+            
+            if (isGameActive == true)
             {
                 OnClickPauseButton();
             }
-            else if (pausePanel.activeSelf)
+            else if (isGameActive == false)
             {
                 OnClickResumeButton();
             }
@@ -96,6 +103,12 @@ public class ButtonManager : MonoBehaviour
             tutorialPanel.SetActive(false);
             mainMenuPanel.SetActive(true);
         }
+        else if (gameOverPanel.activeSelf)
+        {
+            gameOverPanel.SetActive(false);
+            gamePanel.SetActive(false);
+            mainMenuPanel.SetActive(true);
+        }
     }
 
     public void OnClickCategoryButton(string category)
@@ -129,6 +142,7 @@ public class ButtonManager : MonoBehaviour
         gameManager.ResetGame();
         pausePanel.SetActive(false);
         gamePanel.SetActive(false);
+        gameOverPanel.SetActive(false);
         categoryPanel.SetActive(true);
         gameManager.EnablePlayerButtons();
     }

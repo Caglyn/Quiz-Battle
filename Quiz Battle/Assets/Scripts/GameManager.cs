@@ -22,6 +22,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] player2ChoiceTexts; // Choices for Player 2
     [SerializeField] private TextMeshProUGUI player2ScoreText;
     
+
+    [Header("Miscellaneous")]
     private string correctAnswer; // Store the correct answer
     private int player1Score = 0; // Player 1 score
     private int player2Score = 0; // Player 2 score
@@ -31,9 +33,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerChoiceNavigator player1ChoiceNavigator;
     [SerializeField] private PlayerChoiceNavigator player2ChoiceNavigator;
 
+    [Header("GameOver Elements")]
+    [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private TextMeshProUGUI player1FinalScoreText;
+    [SerializeField] private TextMeshProUGUI player2FinalScoreText;
+    [SerializeField] private Image[] resultIcons; // 0 for crown, 1 for trash bin
+    [SerializeField] private Image player1ResultIcon;
+    [SerializeField] private Image player2ResultIcon;
+
     /*
-     * TODO: CHOICE BUTTONS SHOULD BE TOGGLE BUTTONS, AND EVERY PLAYER'S FIRST CHOICE SHOULD BE SELECTED BY DEFAULT AT START
-     * WHILE WAITING FOR THE API RESPONSE, LOADING SCREEN SHOULD BE DISPLAYED
+     * TODO: WHILE WAITING FOR THE API RESPONSE, LOADING SCREEN SHOULD BE DISPLAYED
      */ 
 
     private void Start()
@@ -263,6 +272,30 @@ public class GameManager : MonoBehaviour
 
         questionQueue.Clear();
         currentQuestionIndex = 0;
+    }
+
+    public void GameOver()
+    {
+        PauseGame();
+        gameOverPanel.SetActive(true);
+        player1FinalScoreText.text = "Player 1\nScore: " + player1Score;
+        player2FinalScoreText.text = "Player 2\nScore: " + player2Score;
+
+        if (player1Score > player2Score)
+        {
+            player1ResultIcon.sprite = resultIcons[0].sprite;
+            player2ResultIcon.sprite = resultIcons[1].sprite;
+        }
+        else if (player1Score < player2Score)
+        {
+            player1ResultIcon.sprite = resultIcons[1].sprite;
+            player2ResultIcon.sprite = resultIcons[0].sprite;
+        }
+        else
+        {
+            player1ResultIcon.sprite = resultIcons[0].sprite;
+            player2ResultIcon.sprite = resultIcons[0].sprite;
+        }
     }
 
     /*private void OnQuestionSuccess(string jsonResponse)

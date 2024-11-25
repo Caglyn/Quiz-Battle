@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 public class APIManager : MonoBehaviour
 {
-    private string apiKey = "my_api";
+    private string apiKey = "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";
     private const string apiUrl = "https://api.openai.com/v1/chat/completions";
 
     /*public IEnumerator GetQuestionFromAPI(string prompt, Action<string> onSuccess, Action<string> onError)
