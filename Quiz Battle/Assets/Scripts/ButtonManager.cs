@@ -120,6 +120,7 @@ public class ButtonManager : MonoBehaviour
         prompt = "Generate " + desiredQuestionCount + " multiple-choice questions about " + category +  " with 4 options each, and specify the correct answer for each question. Separate each question clearly. Don't specify the question's order, writing 'Question:' at the start is enough to indicate the start of a new question.";
         gameManager.GetQuestionsFromAPI(prompt);
         gamePanel.SetActive(true);
+        gameManager.DisablePlayerButtons();
     }
 
     public void OnClickPauseButton()
@@ -144,6 +145,6 @@ public class ButtonManager : MonoBehaviour
         gamePanel.SetActive(false);
         gameOverPanel.SetActive(false);
         categoryPanel.SetActive(true);
-        gameManager.EnablePlayerButtons();
+       // gameManager.EnablePlayerButtons();
     }
 }

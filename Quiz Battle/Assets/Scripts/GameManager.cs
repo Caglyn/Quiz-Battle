@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
     private int player2Score = 0; // Player 2 score
     private List<(string question, string[] choices, string correctAnswer)> questionQueue;
     private int currentQuestionIndex = 0;
+    [SerializeField] private GameObject loadingPanel;
 
     [SerializeField] private PlayerChoiceNavigator player1ChoiceNavigator;
     [SerializeField] private PlayerChoiceNavigator player2ChoiceNavigator;
@@ -71,6 +72,8 @@ public class GameManager : MonoBehaviour
             Debug.Log("PlayerChoiceNavigator not set in the inspector. Trying to find one in the scene.");
         }
 
+        loadingPanel.SetActive(false); // Hide the loading panel
+
         questionQueue = new List<(string, string[], string)>(); // Initialize the question queue
 
         player1ScoreText.text = "Score: " + player1Score;
@@ -79,6 +82,7 @@ public class GameManager : MonoBehaviour
 
     public void GetQuestionsFromAPI(string prompt)
     {
+        loadingPanel.SetActive(true); // Show the loading panel
         gameTimer.ResetTimer(); // Reset the timer
         gameTimer.PauseTimer(); // Pause timer during question fetch
         StartCoroutine(apiManager.GetQuestionsFromAPI(prompt, OnQuestionsSuccess, HandleError));
@@ -92,9 +96,11 @@ public class GameManager : MonoBehaviour
             questionQueue.Add((question, choices, correct));
         }
 
+        loadingPanel.SetActive(false); // Hide the loading panel
         currentQuestionIndex = 0;
         DisplayQuestion(currentQuestionIndex); // Display the first question
         gameTimer.ResumeTimer();
+        EnablePlayerButtons(); // Enable buttons for both players
     }
 
     private (string question, string[] choices, string correctAnswer) ParseQuestionAndChoices(string content)
@@ -265,14 +271,37 @@ public class GameManager : MonoBehaviour
 
     public void ResetGame()
     {
+        // Reset scores
         player1Score = 0;
         player2Score = 0;
         player1ScoreText.text = "Score: " + player1Score;
         player2ScoreText.text = "Score: " + player2Score;
 
+        // Clear the question queue and reset the index
         questionQueue.Clear();
         currentQuestionIndex = 0;
+
+        // Clear question texts
+        player1QuestionText.text = "";
+        player2QuestionText.text = "";
+
+        // Clear choice texts for both players
+        ClearChoiceTexts(player1ChoiceTexts);
+        ClearChoiceTexts(player2ChoiceTexts);
+
+        // Disable player navigation until a new question is loaded
+        DisablePlayerButtons();
     }
+
+    // Helper method to clear choice texts
+    private void ClearChoiceTexts(TextMeshProUGUI[] choiceTexts)
+    {
+        foreach (var choiceText in choiceTexts)
+        {
+            choiceText.text = ""; // Set each choice text to an empty string
+        }
+    }
+
 
     public void GameOver()
     {
