@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System;
 
 public class AnswerValidator : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class AnswerValidator : MonoBehaviour
     
     [SerializeField] private int correctAnswerPoint = 10;
     [SerializeField] private int wrongAnswerPoint = -10;
+
 
     private void Start()
     {
@@ -30,13 +32,19 @@ public class AnswerValidator : MonoBehaviour
 
         hasAnswered = true;
 
-        string selectedAnswer = clickedButton.GetComponentInChildren<TextMeshProUGUI>().text;
-        Debug.Log("Player " + (isPlayer1 ? "1" : "2") + " selected: " + selectedAnswer);
+        // Clean up the selected answer (extract the text after the option letter)
+        string selectedAnswer = clickedButton.GetComponentInChildren<TextMeshProUGUI>().text.Trim();
+        string selectedOption = selectedAnswer.Substring(0, 1);  // Extract 'A', 'B', etc.
 
-        if (selectedAnswer == gameManager.GetCorrectAnswer())
+        // Clean up the correct answer for comparison
+        string correctOption = gameManager.GetCorrectAnswer().Substring(0, 1); // Extract 'B' from "B)"
+
+        Debug.Log("Player selected: " + selectedOption);
+        Debug.Log("Correct answer: " + correctOption);
+
+        if (selectedOption.Equals(correctOption, StringComparison.OrdinalIgnoreCase))
         {
             Debug.Log("Correct answer!");
-
             if (isPlayer1)
                 gameManager.UpdatePlayerScore(1, correctAnswerPoint);
             else
@@ -44,21 +52,34 @@ public class AnswerValidator : MonoBehaviour
         }
         else
         {
+            Debug.Log("Wrong answer.");
+            SetButtonColor(clickedButton, Color.red);  // Highlight wrong answer in red
             if (isPlayer1)
                 gameManager.UpdatePlayerScore(1, wrongAnswerPoint);
             else
                 gameManager.UpdatePlayerScore(2, wrongAnswerPoint);
         }
+
+        // Highlight the correct answer (whether the answer was correct or wrong)
+        gameManager.HighlightCorrectAnswer(isPlayer1);
         
-        // Optionally, disable buttons after an answer is selected
         StartCoroutine(DelayNextQuestion());
+    }
+
+    // Helper method to set button color
+    private void SetButtonColor(Button button, Color color)
+    {
+        ColorBlock colors = button.colors;
+        colors.normalColor = color; // Set the normal color
+        colors.disabledColor = color; // Ensure disabled buttons retain the color
+        button.colors = colors;
     }
 
     private IEnumerator DelayNextQuestion()
     {
-        gameManager.DisablePlayerButtons();
-        yield return new WaitForSeconds(2f);
-        gameManager.NextQuestion();
+        gameManager.PauseGame(); // Keep the game paused for a short time
+        yield return new WaitForSeconds(1f);
+        gameManager.NextQuestion(); // Load the next question
     }
 
     public void ResetAnswerFlag() // Method to reset the flag for the next question

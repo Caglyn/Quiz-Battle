@@ -14,6 +14,8 @@ public class PlayerChoiceNavigator : MonoBehaviour
     private Color defaultColor = Color.white;  // Default button color
     private Color selectedColor = Color.yellow; // Highlighted color for selection
 
+    private AudioManager audioManager;
+
     private void Awake()
     {
         inputActions = new GameInputActions();
@@ -28,6 +30,8 @@ public class PlayerChoiceNavigator : MonoBehaviour
             inputActions.Player2.Move.performed += OnMove;
             inputActions.Player2.Select.performed += OnSelect;
         }
+
+        audioManager = FindObjectOfType<AudioManager>();
     }
 
     private void OnEnable()
@@ -58,21 +62,24 @@ public class PlayerChoiceNavigator : MonoBehaviour
 
     private void OnMove(InputAction.CallbackContext context)
     {
+        // Read the raw input as a float to detect the direction
         float inputY = context.ReadValue<Vector2>().y;
 
-        if (inputY > 0)
-        {
-            MoveSelection(-1); // Move up
-        }
-        else if (inputY < 0)
-        {
-            MoveSelection(1); // Move down
-        }
+        // Only trigger movement when the key is pressed down, not held
+        if (Mathf.Approximately(inputY, 0)) return; // Ignore zero input (no movement)
+
+        // Determine direction and move selection
+        int direction = inputY > 0 ? -1 : 1;
+        MoveSelection(direction);
+
+        // Play sound effect once per button press
+        audioManager.PlayNavigateSound();
     }
 
     private void OnSelect(InputAction.CallbackContext context)
     {
         choiceButtons[currentIndex].onClick.Invoke(); // Trigger the button click
+        audioManager.PlaySelectSound(); // Play selection sound
     }
 
     private void MoveSelection(int direction)

@@ -3,10 +3,11 @@ using UnityEngine.Networking;
 using System.Collections;
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class APIManager : MonoBehaviour
 {
-    private string apiKey = "my_api";
+    private string apiKey = "api_key";
     private const string apiUrl = "https://api.openai.com/v1/chat/completions";
 
     /*public IEnumerator GetQuestionFromAPI(string prompt, Action<string> onSuccess, Action<string> onError)
@@ -36,8 +37,19 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator GetQuestionsFromAPI(string prompt, Action<List<string>> onSuccess, Action<string> onError)
     {
-        // Update the prompt to request 10 questions
-        string requestBody = "{\"model\":\"gpt-4\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful assistant for a quiz game.\"},{\"role\":\"user\",\"content\":\"" + prompt + "\"}],\"max_tokens\":1500,\"temperature\":0.7}";
+       // string requestBody = "{\"model\":\"gpt-4\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful assistant for a quiz game.\"},{\"role\":\"user\",\"content\":\"" + prompt + "\"}],\"max_tokens\":1500,\"temperature\":0.7}";
+        string requestBody = JsonConvert.SerializeObject(new
+        {
+            model = "gpt-4",
+            messages = new[]
+            {
+                new { role = "system", content = "You are a helpful assistant for a quiz game." },
+                new { role = "user", content = prompt }
+            },
+            max_tokens = 150,
+            temperature = 0.7
+        });
+
 
         using (UnityWebRequest request = new UnityWebRequest(apiUrl, "POST"))
         {
@@ -57,6 +69,8 @@ public class APIManager : MonoBehaviour
             }
             else
             {
+                Debug.LogError("Error: " + request.error);
+                Debug.LogError("Response: " + request.downloadHandler.text);  // Detailed response log
                 onError?.Invoke(request.error);
             }
         }

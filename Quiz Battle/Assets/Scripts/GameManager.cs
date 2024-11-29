@@ -12,14 +12,14 @@ public class GameManager : MonoBehaviour
 
     [Header("Player 1 UI Elements")]
     [SerializeField] private TextMeshProUGUI player1QuestionText;
-    [SerializeField] private Button[] player1ChoiceButtons; // Assign buttons in the inspector for Player 1
-    [SerializeField] private TextMeshProUGUI[] player1ChoiceTexts; // Choices for Player 1
+    [SerializeField] private Button[] player1OptionButtons; // Assign buttons in the inspector for Player 1
+    [SerializeField] private TextMeshProUGUI[] player1OptionTexts; // Options for Player 1
     [SerializeField] private TextMeshProUGUI player1ScoreText;
 
     [Header("Player 2 UI Elements")]
     [SerializeField] private TextMeshProUGUI player2QuestionText;
-    [SerializeField] private Button[] player2ChoiceButtons; // Assign buttons in the inspector for Player 2
-    [SerializeField] private TextMeshProUGUI[] player2ChoiceTexts; // Choices for Player 2
+    [SerializeField] private Button[] player2OptionButtons; // Assign buttons in the inspector for Player 2
+    [SerializeField] private TextMeshProUGUI[] player2OptionTexts; // Options for Player 2
     [SerializeField] private TextMeshProUGUI player2ScoreText;
     
 
@@ -27,12 +27,12 @@ public class GameManager : MonoBehaviour
     private string correctAnswer; // Store the correct answer
     private int player1Score = 0; // Player 1 score
     private int player2Score = 0; // Player 2 score
-    private List<(string question, string[] choices, string correctAnswer)> questionQueue;
+    private List<(string question, string[] options, string correctAnswer)> questionQueue;
     private int currentQuestionIndex = 0;
     [SerializeField] private GameObject loadingPanel;
 
-    [SerializeField] private PlayerChoiceNavigator player1ChoiceNavigator;
-    [SerializeField] private PlayerChoiceNavigator player2ChoiceNavigator;
+    [SerializeField] private PlayerChoiceNavigator player1OptionNavigator;
+    [SerializeField] private PlayerChoiceNavigator player2OptionNavigator;
 
     [Header("GameOver Elements")]
     [SerializeField] private GameObject gameOverPanel;
@@ -41,10 +41,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image[] resultIcons; // 0 for crown, 1 for trash bin
     [SerializeField] private Image player1ResultIcon;
     [SerializeField] private Image player2ResultIcon;
-
-    /*
-     * TODO: WHILE WAITING FOR THE API RESPONSE, LOADING SCREEN SHOULD BE DISPLAYED
-     */ 
 
     private void Start()
     {
@@ -60,15 +56,15 @@ public class GameManager : MonoBehaviour
             Debug.Log("Timer not set in the inspector. Trying to find one in the scene.");
         }
 
-        if (player1ChoiceNavigator == null)
+        if (player1OptionNavigator == null)
         {
-            player1ChoiceNavigator = FindObjectOfType<PlayerChoiceNavigator>();
+            player1OptionNavigator = FindObjectOfType<PlayerChoiceNavigator>();
             Debug.Log("PlayerChoiceNavigator not set in the inspector. Trying to find one in the scene.");
         }
 
-        if (player2ChoiceNavigator == null)
+        if (player2OptionNavigator == null)
         {
-            player2ChoiceNavigator = FindObjectOfType<PlayerChoiceNavigator>();
+            player2OptionNavigator = FindObjectOfType<PlayerChoiceNavigator>();
             Debug.Log("PlayerChoiceNavigator not set in the inspector. Trying to find one in the scene.");
         }
 
@@ -92,8 +88,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (var qBlock in questions)
         {
-            var (question, choices, correct) = ParseQuestionAndChoices(qBlock);
-            questionQueue.Add((question, choices, correct));
+            var (question, options, correct) = ParseQuestionAndOptions(qBlock);
+            questionQueue.Add((question, options, correct));
         }
 
         loadingPanel.SetActive(false); // Hide the loading panel
@@ -103,13 +99,13 @@ public class GameManager : MonoBehaviour
         EnablePlayerButtons(); // Enable buttons for both players
     }
 
-    private (string question, string[] choices, string correctAnswer) ParseQuestionAndChoices(string content)
+    private (string question, string[] options, string correctAnswer) ParseQuestionAndOptions(string content)
     {
-        // Split the content into lines
-        string[] lines = content.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        Debug.Log("Raw Content: " + content);  // Log the content to see what is received
 
+        string[] lines = content.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
         string question = null;
-        var choices = new List<string>();
+        var options = new List<string>();
         string correctAnswer = "";
 
         foreach (var line in lines)
@@ -122,15 +118,25 @@ public class GameManager : MonoBehaviour
             }
             else if (trimmedLine.StartsWith("Question:", StringComparison.OrdinalIgnoreCase))
             {
-                question = trimmedLine.Substring("Question:".Length).Trim(); // Extract text after "Question:"
+                question = trimmedLine.Substring("Question:".Length).Trim();
             }
-            else{
-                choices.Add(trimmedLine);
+            else if (trimmedLine.StartsWith("A)") || trimmedLine.StartsWith("B)") || trimmedLine.StartsWith("C)") || trimmedLine.StartsWith("D)"))
+            {
+                options.Add(trimmedLine);  // Only add lines starting with options (A, B, C, D)
             }
         }
 
-        return (question, choices.ToArray(), correctAnswer);
+        Debug.Log($"Parsed Question: {question}");
+        foreach (var choice in options)
+        {
+            Debug.Log($"Choice: {choice}");
+        }
+        Debug.Log($"Correct Answer: {correctAnswer}");
+
+        return (question, options.ToArray(), correctAnswer);
     }
+
+
 
     private void DisplayQuestion(int index)
     {
@@ -139,22 +145,22 @@ public class GameManager : MonoBehaviour
         var currentQuestion = questionQueue[index];
         correctAnswer = currentQuestion.correctAnswer; // Store the correct answer
 
-        // Assign the question and choices to Player 1's UI
+        // Assign the question and options to Player 1's UI
         player1QuestionText.text = currentQuestion.question;
-        AssignChoicesToUI(player1ChoiceTexts, currentQuestion.choices);
+        AssignOptionsToUI(player1OptionTexts, currentQuestion.options);
 
-        // Assign the same question and choices to Player 2's UI
+        // Assign the same question and options to Player 2's UI
         player2QuestionText.text = currentQuestion.question;
-        AssignChoicesToUI(player2ChoiceTexts, currentQuestion.choices);
+        AssignOptionsToUI(player2OptionTexts, currentQuestion.options);
     }
 
-    private void AssignChoicesToUI(TextMeshProUGUI[] choiceTexts, string[] choices)
+    private void AssignOptionsToUI(TextMeshProUGUI[] choiceTexts, string[] options)
     {
         for (int i = 0; i < choiceTexts.Length; i++)
         {
-            if (i < choices.Length)
+            if (i < options.Length)
             {
-                choiceTexts[i].text = choices[i];
+                choiceTexts[i].text = options[i];
             }
             else
             {
@@ -169,14 +175,14 @@ public class GameManager : MonoBehaviour
 
         // Handle errors for Player 1
         player1QuestionText.text = errorMessage;
-        foreach (var choiceText in player1ChoiceTexts)
+        foreach (var choiceText in player1OptionTexts)
         {
             choiceText.text = "";
         }
 
         // Handle errors for Player 2
         player2QuestionText.text = errorMessage;
-        foreach (var choiceText in player2ChoiceTexts)
+        foreach (var choiceText in player2OptionTexts)
         {
             choiceText.text = "";
         }
@@ -184,14 +190,14 @@ public class GameManager : MonoBehaviour
 
     public void EnablePlayerButtons() // Call this when the next question is loaded
     {
-        player1ChoiceNavigator.enabled = true;
-        player2ChoiceNavigator.enabled = true;
+        player1OptionNavigator.enabled = true;
+        player2OptionNavigator.enabled = true;
 
-        foreach (var button in player1ChoiceButtons)
+        foreach (var button in player1OptionButtons)
         {
             button.interactable = true;
         }
-        foreach (var button in player2ChoiceButtons)
+        foreach (var button in player2OptionButtons)
         {
             button.interactable = true;
         }
@@ -205,14 +211,14 @@ public class GameManager : MonoBehaviour
 
     public void DisablePlayerButtons()
     {
-        player1ChoiceNavigator.enabled = false;
-        player2ChoiceNavigator.enabled = false;
+        player1OptionNavigator.enabled = false;
+        player2OptionNavigator.enabled = false;
 
-        foreach (var button in player1ChoiceButtons)
+        foreach (var button in player1OptionButtons)
         {
             button.interactable = false;
         }
-        foreach (var button in player2ChoiceButtons)
+        foreach (var button in player2OptionButtons)
         {
             button.interactable = false;
         }
@@ -239,13 +245,14 @@ public class GameManager : MonoBehaviour
         currentQuestionIndex++;
         if (currentQuestionIndex < questionQueue.Count)
         {
+            ResetButtonColors();
             DisplayQuestion(currentQuestionIndex); // Display the next question
-            EnablePlayerButtons(); // Enable buttons for both players
+            ResumeGame(); // Resume the game
         }
         else
         {
             // UI FOR FINAL SCORES
-            DisablePlayerButtons(); // Disable buttons for both players
+          //  DisablePlayerButtons(); // Disable buttons for both players
            // Time.timeScale = 0; // Pause the game
             Debug.Log("Quiz Finished!");
             // Logic to end the quiz or show final scores
@@ -286,22 +293,22 @@ public class GameManager : MonoBehaviour
         player2QuestionText.text = "";
 
         // Clear choice texts for both players
-        ClearChoiceTexts(player1ChoiceTexts);
-        ClearChoiceTexts(player2ChoiceTexts);
+        ClearOptionTexts(player1OptionTexts);
+        ClearOptionTexts(player2OptionTexts);
 
         // Disable player navigation until a new question is loaded
         DisablePlayerButtons();
+        ResetButtonColors();
     }
 
     // Helper method to clear choice texts
-    private void ClearChoiceTexts(TextMeshProUGUI[] choiceTexts)
+    private void ClearOptionTexts(TextMeshProUGUI[] choiceTexts)
     {
         foreach (var choiceText in choiceTexts)
         {
             choiceText.text = ""; // Set each choice text to an empty string
         }
     }
-
 
     public void GameOver()
     {
@@ -327,38 +334,43 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /*private void OnQuestionSuccess(string jsonResponse)
+    public void HighlightCorrectAnswer(bool isPlayer1)
     {
-        Debug.Log("API Response: " + jsonResponse);
+        Button[] playerButtons = isPlayer1 ? player1OptionButtons : player2OptionButtons;
 
-        var chatResponse = JsonUtility.FromJson<ChatResponse>(jsonResponse);
-        if (chatResponse.choices != null && chatResponse.choices.Length > 0)
+        foreach (var button in playerButtons)
         {
-            string content = chatResponse.choices[0].message.content.Trim();
-            var (question, choices, correct) = ParseQuestionAndChoices(content);
+            string buttonText = button.GetComponentInChildren<TextMeshProUGUI>().text;
+            string optionLetter = buttonText.Substring(0, 1);  // Extract the option letter (A, B, C, or D)
 
-            correctAnswer = correct; // Store the correct answer
-
-            // Assign the question and choices to Player 1's UI
-            player1QuestionText.text = question;
-            AssignChoicesToUI(player1ChoiceTexts, choices);
-
-            // Assign the same question and choices to Player 2's UI
-            player2QuestionText.text = question;
-            AssignChoicesToUI(player2ChoiceTexts, choices);
-
-            // Resume the timer after updating the UI
-            gameTimer.ResumeTimer();
-        }
-        else
-        {
-            HandleError("Failed to load question.");
+            // Highlight the correct button if it matches the correct answer
+            if (optionLetter.Equals(correctAnswer.Substring(0, 1), StringComparison.OrdinalIgnoreCase))
+            {
+                SetButtonColor(button, Color.green);  // Highlight correct answer in green
+                break;  // Stop after highlighting the correct button
+            }
         }
     }
 
-    public void GetQuestionFromAPI(string prompt)
+    private void SetButtonColor(Button button, Color color)
     {
-        gameTimer.PauseTimer(); // Pause timer during question fetch
-        StartCoroutine(apiManager.GetQuestionFromAPI(prompt, OnQuestionSuccess, HandleError));
-    }*/
+        ColorBlock colors = button.colors;
+        colors.normalColor = color; // Set the normal color
+        colors.disabledColor = color; // Ensure disabled buttons retain the color
+        button.colors = colors;
+    }
+
+    public void ResetButtonColors()
+    {
+        ResetButtons(player1OptionButtons);
+        ResetButtons(player2OptionButtons);
+    }
+
+    private void ResetButtons(Button[] buttons)
+    {
+        foreach (var button in buttons)
+        {
+            SetButtonColor(button, Color.white); // Reset to default color
+        }
+    }
 }

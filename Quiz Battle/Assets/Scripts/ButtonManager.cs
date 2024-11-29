@@ -117,10 +117,18 @@ public class ButtonManager : MonoBehaviour
         categoryPanel.SetActive(false);
         background.gameObject.SetActive(false);
 
-        prompt = "Generate " + desiredQuestionCount + " multiple-choice questions about " + category +  " with 4 options each, and specify the correct answer for each question. Separate each question clearly. Don't specify the question's order, writing 'Question:' at the start is enough to indicate the start of a new question.";
+        prompt = $"Generate {desiredQuestionCount} multiple-choice questions about {category}. Each question should be formatted as follows:\n" +
+         "Question: [Your question here]\n" +
+         "A) [Option 1]\n" +
+         "B) [Option 2]\n" +
+         "C) [Option 3]\n" +
+         "D) [Option 4]\n" +
+         "Correct Answer: [Correct option letter]\n\n" +
+         "Ensure each question follows this structure exactly, with no additional text or explanations.";
+
         gameManager.GetQuestionsFromAPI(prompt);
         gamePanel.SetActive(true);
-        gameManager.DisablePlayerButtons();
+        gameManager.ResetGame();
     }
 
     public void OnClickPauseButton()
@@ -140,7 +148,6 @@ public class ButtonManager : MonoBehaviour
     public void OnClickRetryButton()
     {
         Debug.Log("Retry Button Clicked");
-        gameManager.ResetGame();
         pausePanel.SetActive(false);
         gamePanel.SetActive(false);
         gameOverPanel.SetActive(false);
