@@ -10,6 +10,7 @@ public class ButtonManager : MonoBehaviour
     [SerializeField] private GameObject gamePanel;
     [SerializeField] private GameObject pausePanel;
     [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private GameObject controlsPanel;
     
     [Header("Manager References")]
     [SerializeField] private APIManager apiManager;
@@ -19,7 +20,6 @@ public class ButtonManager : MonoBehaviour
     [SerializeField] private string prompt;
     [SerializeField] private int desiredQuestionCount = 6;
 
-    [SerializeField] private Image background;
     bool isGameActive;
 
     private void Start()
@@ -29,6 +29,7 @@ public class ButtonManager : MonoBehaviour
         gamePanel.SetActive(false);
         pausePanel.SetActive(false);
         gameOverPanel.SetActive(false);
+        controlsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
 
         if (apiManager == null)
@@ -109,13 +110,30 @@ public class ButtonManager : MonoBehaviour
             gamePanel.SetActive(false);
             mainMenuPanel.SetActive(true);
         }
+        else if (controlsPanel.activeSelf)
+        {
+            controlsPanel.SetActive(false);
+            tutorialPanel.SetActive(true);
+        }
+        else if (pausePanel.activeSelf)
+        {
+            pausePanel.SetActive(false);
+            gamePanel.SetActive(false);
+            mainMenuPanel.SetActive(true);
+        }
+    }
+
+    public void OnClickForwardButton()
+    {
+        Debug.Log("Forward Button Clicked");
+        tutorialPanel.SetActive(false);
+        controlsPanel.SetActive(true);
     }
 
     public void OnClickCategoryButton(string category)
     {
         Debug.Log("Category Button Clicked: " + category);
         categoryPanel.SetActive(false);
-        background.gameObject.SetActive(false);
 
         prompt = $"Generate {desiredQuestionCount} multiple-choice questions about {category}. Each question should be formatted as follows:\n" +
          "Question: [Your question here]\n" +
@@ -152,6 +170,5 @@ public class ButtonManager : MonoBehaviour
         gamePanel.SetActive(false);
         gameOverPanel.SetActive(false);
         categoryPanel.SetActive(true);
-       // gameManager.EnablePlayerButtons();
     }
 }

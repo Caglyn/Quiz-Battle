@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private TextMeshProUGUI player1FinalScoreText;
     [SerializeField] private TextMeshProUGUI player2FinalScoreText;
+    [SerializeField] private TextMeshProUGUI winnerText;
     [SerializeField] private Image[] resultIcons; // 0 for crown, 1 for trash bin
     [SerializeField] private Image player1ResultIcon;
     [SerializeField] private Image player2ResultIcon;
@@ -86,18 +87,31 @@ public class GameManager : MonoBehaviour
 
     private void OnQuestionsSuccess(List<string> questions)
     {
-        foreach (var qBlock in questions)
-        {
-            var (question, options, correct) = ParseQuestionAndOptions(qBlock);
-            questionQueue.Add((question, options, correct));
-        }
-
-        loadingPanel.SetActive(false); // Hide the loading panel
-        currentQuestionIndex = 0;
-        DisplayQuestion(currentQuestionIndex); // Display the first question
-        gameTimer.ResumeTimer();
-        EnablePlayerButtons(); // Enable buttons for both players
+        StartCoroutine(ProcessQuestionsAsync(questions)); // Process questions in background
     }
+
+    private IEnumerator ProcessQuestionsAsync(List<string> questions)
+    {
+        for (int i = 0; i < questions.Count; i++)
+        {
+            var (question, options, correct) = ParseQuestionAndOptions(questions[i]);
+            questionQueue.Add((question, options, correct));
+
+            // Start game after loading the first 5 questions
+            if (i == 4)  // Zero-indexed, so 0-4 = 5 questions
+            {
+                loadingPanel.SetActive(false);  // Hide loading panel
+                currentQuestionIndex = 0;
+                DisplayQuestion(currentQuestionIndex);  // Display first question
+                gameTimer.ResumeTimer();
+                EnablePlayerButtons();
+            }
+
+            // Yield return to avoid freezing the main thread
+            yield return null;  // Wait for the next frame before processing the next question
+        }
+    }
+
 
     private (string question, string[] options, string correctAnswer) ParseQuestionAndOptions(string content)
     {
@@ -126,17 +140,15 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Parsed Question: {question}");
+        /*Debug.Log($"Parsed Question: {question}");
         foreach (var choice in options)
         {
             Debug.Log($"Choice: {choice}");
         }
-        Debug.Log($"Correct Answer: {correctAnswer}");
+        Debug.Log($"Correct Answer: {correctAnswer}");*/
 
         return (question, options.ToArray(), correctAnswer);
     }
-
-
 
     private void DisplayQuestion(int index)
     {
@@ -230,13 +242,13 @@ public class GameManager : MonoBehaviour
         {
             player1Score += score;
             player1ScoreText.text = "Score: " + player1Score;
-            Debug.Log("Player 1 Score: " + player1Score);
+           // Debug.Log("Player 1 Score: " + player1Score);
         }
         else if (playerNumber == 2)
         {
             player2Score += score;
             player2ScoreText.text = "Score: " + player2Score;
-            Debug.Log("Player 2 Score: " + player2Score);
+           // Debug.Log("Player 2 Score: " + player2Score);
         }
     }
 
@@ -249,13 +261,16 @@ public class GameManager : MonoBehaviour
             DisplayQuestion(currentQuestionIndex); // Display the next question
             ResumeGame(); // Resume the game
         }
+        /*else
+        {
+            GameOver(); // End the game
+            Debug.Log("Every question has been answered.");
+            // Logic to end the quiz or show final scores
+        }*/
         else
         {
-            // UI FOR FINAL SCORES
-          //  DisablePlayerButtons(); // Disable buttons for both players
-           // Time.timeScale = 0; // Pause the game
-            Debug.Log("Quiz Finished!");
-            // Logic to end the quiz or show final scores
+            Debug.Log("Waiting for more questions...");
+            // Optionally, add a message or animation to indicate loading
         }
     }
 
@@ -321,16 +336,19 @@ public class GameManager : MonoBehaviour
         {
             player1ResultIcon.sprite = resultIcons[0].sprite;
             player2ResultIcon.sprite = resultIcons[1].sprite;
+            winnerText.text = "Player 1 Wins!";
         }
         else if (player1Score < player2Score)
         {
             player1ResultIcon.sprite = resultIcons[1].sprite;
             player2ResultIcon.sprite = resultIcons[0].sprite;
+            winnerText.text = "Player 2 Wins!";
         }
         else
         {
             player1ResultIcon.sprite = resultIcons[0].sprite;
             player2ResultIcon.sprite = resultIcons[0].sprite;
+            winnerText.text = "It's a Tie!";
         }
     }
 

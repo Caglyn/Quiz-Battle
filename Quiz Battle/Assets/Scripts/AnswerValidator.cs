@@ -39,8 +39,8 @@ public class AnswerValidator : MonoBehaviour
         // Clean up the correct answer for comparison
         string correctOption = gameManager.GetCorrectAnswer().Substring(0, 1); // Extract 'B' from "B)"
 
-        Debug.Log("Player selected: " + selectedOption);
-        Debug.Log("Correct answer: " + correctOption);
+       // Debug.Log("Player selected: " + selectedOption);
+       // Debug.Log("Correct answer: " + correctOption);
 
         if (selectedOption.Equals(correctOption, StringComparison.OrdinalIgnoreCase))
         {
@@ -77,8 +77,9 @@ public class AnswerValidator : MonoBehaviour
 
     private IEnumerator DelayNextQuestion()
     {
-        gameManager.PauseGame(); // Keep the game paused for a short time
-        yield return new WaitForSeconds(1f);
+        //gameManager.PauseGame(); // Keep the game paused for a short time
+        gameManager.DisablePlayerButtons(); // Disable the player buttons
+        yield return new WaitForSeconds(0.5f);
         gameManager.NextQuestion(); // Load the next question
     }
 
