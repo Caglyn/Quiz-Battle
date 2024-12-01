@@ -7,8 +7,8 @@ using System;
 public class AnswerValidator : MonoBehaviour
 {
     [Header("Player Configuration")]
-    [SerializeField] private bool isPlayer1; // Check for Player 1, uncheck for Player 2
-    [SerializeField] private GameManager gameManager; // Reference to the GameManager script
+    [SerializeField] private bool isPlayer1;
+    [SerializeField] private GameManager gameManager;
 
     private bool hasAnswered = false; // Flag to track if the player has already answered
     
@@ -78,12 +78,12 @@ public class AnswerValidator : MonoBehaviour
     private IEnumerator DelayNextQuestion()
     {
         //gameManager.PauseGame(); // Keep the game paused for a short time
-        gameManager.DisablePlayerButtons(); // Disable the player buttons
+        gameManager.DisablePlayerButtons();
         yield return new WaitForSeconds(0.5f);
-        gameManager.NextQuestion(); // Load the next question
+        gameManager.NextQuestion();
     }
 
-    public void ResetAnswerFlag() // Method to reset the flag for the next question
+    public void ResetAnswerFlag()
     {
         hasAnswered = false;
     }

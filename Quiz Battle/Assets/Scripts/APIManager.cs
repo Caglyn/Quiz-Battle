@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 public class APIManager : MonoBehaviour
 {
-    private string apiKey = "my_api";
+    private string apiKey = "api_key";
     private const string apiUrl = "https://api.openai.com/v1/chat/completions";
 
     public IEnumerator GetQuestionsFromAPI(string prompt, Action<List<string>> onSuccess, Action<string> onError)
@@ -24,7 +24,6 @@ public class APIManager : MonoBehaviour
             max_tokens = 1000,
             temperature = 0.7
         });
-
 
         using (UnityWebRequest request = new UnityWebRequest(apiUrl, "POST"))
         {

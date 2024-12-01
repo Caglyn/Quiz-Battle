@@ -73,7 +73,6 @@ public class Timer : MonoBehaviour
     {
         // Logic when the timer runs out
         Debug.Log("Time's Up!");
-        // You can add logic to disable inputs or end the round here
         gameManager.GameOver();
     }
 }

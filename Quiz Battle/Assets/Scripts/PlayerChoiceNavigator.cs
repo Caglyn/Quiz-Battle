@@ -5,8 +5,8 @@ using UnityEngine.UI;
 public class PlayerChoiceNavigator : MonoBehaviour
 {
     [Header("Player Configuration")]
-    [SerializeField] private bool isPlayer1; // Check for Player 1, uncheck for Player 2
-    [SerializeField] private Button[] choiceButtons; // Assign the choice buttons in the inspector for each player
+    [SerializeField] private bool isPlayer1;
+    [SerializeField] private Button[] choiceButtons;
 
     private int currentIndex = 0; // Current selected button index
     private GameInputActions inputActions; // Input Actions object
@@ -72,7 +72,6 @@ public class PlayerChoiceNavigator : MonoBehaviour
         int direction = inputY > 0 ? -1 : 1;
         MoveSelection(direction);
 
-        // Play sound effect once per button press
         audioManager.PlayNavigateSound();
     }
 

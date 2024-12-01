@@ -42,9 +42,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image[] resultIcons; // 0 for crown, 1 for trash bin
     [SerializeField] private Image player1ResultIcon;
     [SerializeField] private Image player2ResultIcon;
+    [SerializeField] private bool isGameOver;
 
     private void Start()
     {
+        isGameOver = false;
+        
         if (apiManager == null)
         {
             apiManager = FindObjectOfType<APIManager>();
@@ -69,9 +72,9 @@ public class GameManager : MonoBehaviour
             Debug.Log("PlayerChoiceNavigator not set in the inspector. Trying to find one in the scene.");
         }
 
-        loadingPanel.SetActive(false); // Hide the loading panel
+        loadingPanel.SetActive(false);
 
-        questionQueue = new List<(string, string[], string)>(); // Initialize the question queue
+        questionQueue = new List<(string, string[], string)>();
 
         player1ScoreText.text = "Score: " + player1Score;
         player2ScoreText.text = "Score: " + player2Score;
@@ -79,9 +82,9 @@ public class GameManager : MonoBehaviour
 
     public void GetQuestionsFromAPI(string prompt)
     {
-        loadingPanel.SetActive(true); // Show the loading panel
-        gameTimer.ResetTimer(); // Reset the timer
-        gameTimer.PauseTimer(); // Pause timer during question fetch
+        loadingPanel.SetActive(true);
+        gameTimer.ResetTimer();
+        gameTimer.PauseTimer();
         StartCoroutine(apiManager.GetQuestionsFromAPI(prompt, OnQuestionsSuccess, HandleError));
     }
 
@@ -98,7 +101,7 @@ public class GameManager : MonoBehaviour
             questionQueue.Add((question, options, correct));
 
             // Start game after loading the first 5 questions
-            if (i == 4)  // Zero-indexed, so 0-4 = 5 questions
+            if (i == 4)
             {
                 loadingPanel.SetActive(false);  // Hide loading panel
                 currentQuestionIndex = 0;
@@ -111,7 +114,6 @@ public class GameManager : MonoBehaviour
             yield return null;  // Wait for the next frame before processing the next question
         }
     }
-
 
     private (string question, string[] options, string correctAnswer) ParseQuestionAndOptions(string content)
     {
@@ -155,7 +157,7 @@ public class GameManager : MonoBehaviour
         if (index >= questionQueue.Count) return;
 
         var currentQuestion = questionQueue[index];
-        correctAnswer = currentQuestion.correctAnswer; // Store the correct answer
+        correctAnswer = currentQuestion.correctAnswer;
 
         // Assign the question and options to Player 1's UI
         player1QuestionText.text = currentQuestion.question;
@@ -185,14 +187,12 @@ public class GameManager : MonoBehaviour
     {
         Debug.LogError(errorMessage);
 
-        // Handle errors for Player 1
         player1QuestionText.text = errorMessage;
         foreach (var choiceText in player1OptionTexts)
         {
             choiceText.text = "";
         }
 
-        // Handle errors for Player 2
         player2QuestionText.text = errorMessage;
         foreach (var choiceText in player2OptionTexts)
         {
@@ -200,7 +200,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void EnablePlayerButtons() // Call this when the next question is loaded
+    // Helper method to load next question
+    public void EnablePlayerButtons()
     {
         player1OptionNavigator.enabled = true;
         player2OptionNavigator.enabled = true;
@@ -255,22 +256,24 @@ public class GameManager : MonoBehaviour
     public void NextQuestion()
     {
         currentQuestionIndex++;
-        if (currentQuestionIndex < questionQueue.Count)
+        if(!isGameOver)
         {
-            ResetButtonColors();
-            DisplayQuestion(currentQuestionIndex); // Display the next question
-            ResumeGame(); // Resume the game
-        }
-        /*else
-        {
-            GameOver(); // End the game
-            Debug.Log("Every question has been answered.");
-            // Logic to end the quiz or show final scores
-        }*/
-        else
-        {
-            Debug.Log("Waiting for more questions...");
-            // Optionally, add a message or animation to indicate loading
+            if (currentQuestionIndex < questionQueue.Count)
+            {
+                ResetButtonColors();
+                DisplayQuestion(currentQuestionIndex); // Display the next question
+                ResumeGame(); // Resume the game
+            }
+            else if (currentQuestionIndex == questionQueue.Count)
+            {
+                GameOver(); // End the game
+                Debug.Log("Every question has been answered.");
+            }
+            else
+            {
+                Debug.Log("Waiting for more questions...");
+                // Optionally, add a message or animation to indicate loading
+            }
         }
     }
 
@@ -314,6 +317,8 @@ public class GameManager : MonoBehaviour
         // Disable player navigation until a new question is loaded
         DisablePlayerButtons();
         ResetButtonColors();
+
+        isGameOver = false;
     }
 
     // Helper method to clear choice texts
@@ -327,6 +332,7 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
+        isGameOver = true;
         PauseGame();
         gameOverPanel.SetActive(true);
         player1FinalScoreText.text = "Player 1\nScore: " + player1Score;
